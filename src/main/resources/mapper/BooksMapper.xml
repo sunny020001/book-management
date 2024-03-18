@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IUserDao接口方法提供sql语句配置 -->
+<mapper namespace="com.sunny.sun.bookManagement.mapper.IBooksMapper">
+    <resultMap id="baseBookMap" type="com.sunny.sun.bookManagement.model.Book">
+        <result column="id" jdbcType="BIGINT" property="id"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="author" jdbcType="VARCHAR" property="author"/>
+        <result column="publication_year" jdbcType="TIMESTAMP" property="publication_year"/>
+        <result column="ISBN" jdbcType="VARCHAR" property="ISBN"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="baseBookMap" parameterType="java.util.Map">
+        SELECT * FROM books where 1=1 
+        <if test="id != null and id !=''">
+            and id = #{id,jdbcType=BIGINT}
+        </if>
+        <if test="title != null and title !=''">
+            and title LIKE CONCAT('%',CONCAT(#{title,jdbcType=VARCHAR},'%'))
+        </if>
+         LIMIT #{offset}, #{limit} 
+    </select>
+
+    <select id="selectCount" parameterType="com.sunny.sun.bookManagement.model.Book">
+        SELECT count(*) FROM books
+        <where>
+            <if test="id != null and id !=''">
+                and id = #{id,jdbcType=BIGINT}
+            </if>
+            <if test="title != null and title !=''">
+                and title LIKE CONCAT('%',CONCAT(#{title,jdbcType=VARCHAR},'%'))
+            </if>
+	    </where>
+    </select>
+
+    <select id="selectBookById" resultMap="baseBookMap" parameterType="java.lang.Integer">
+        SELECT * FROM books WHERE id = #{id}
+    </select>
+
+    <select id="selectBooksByTitle" resultMap="baseBookMap">
+        SELECT * FROM books where title LIKE CONCAT('%',CONCAT(#{title},'%'))
+    </select>
+
+    <insert id="insertBook" parameterType="com.sunny.sun.bookManagement.model.Book" useGeneratedKeys="true" keyProperty="id">
+        insert into books
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="author != null">
+                author,
+            </if>
+            <if test="publication_year != null">
+                publication_year,
+            </if>
+            <if test="ISBN != null">
+                ISBN,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="author != null">
+                #{author,jdbcType=VARCHAR},
+            </if>
+            <if test="publication_year != null">
+                #{publication_year,jdbcType=VARCHAR},
+            </if>
+            <if test="ISBN != null">
+                #{ISBN,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+
+    <insert id="updateBookById" parameterType="com.sunny.sun.bookManagement.model.Book">
+        update books set
+        <set>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="author != null">
+                author = #{author,jdbcType=VARCHAR},
+            </if>
+            <if test="publication_year != null">
+                publication_year = #{publication_year,jdbcType=VARCHAR},
+            </if>
+            <if test="ISBN != null">
+                ISBN = #{ISBN,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </insert>
+
+    <insert id="deleteBookById" parameterType="java.lang.Integer">
+        delete from books where id=#{id}
+    </insert>
+
+</mapper>

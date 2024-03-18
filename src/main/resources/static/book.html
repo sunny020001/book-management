@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>book</title>
+  <link href="./css/layui.css" rel="stylesheet">
+</head>
+<body>
+<form class="layui-form layui-row layui-col-space16">
+  <div class="layui-col-md4">
+    <div class="layui-input-wrap">
+      <div class="layui-input-prefix">
+        <i class="layui-icon layui-icon-username"></i>
+      </div>
+      <input type="text" name="id" value="" placeholder="按ID查询" class="layui-input" lay-affix="clear">
+    </div>
+  </div>
+  <div class="layui-col-md4">
+    <div class="layui-input-wrap">
+      <input type="text" name="title" placeholder="按书名查询" lay-affix="clear" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-btn-container layui-col-md4">
+    <button class="layui-btn" lay-submit lay-filter="demo-table-search">查询</button>
+    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+  </div>
+</form>
+<table class="layui-hide" id="books_table"></table>
+
+<script type="text/html" id="toolbarDemo">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="createNewBook">新建书籍信息</button>
+  </div>
+</script>
+
+<script type="text/html" id="barDemo">
+  <div class="layui-clear-space">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="more">
+      更多 
+      <i class="layui-icon layui-icon-down"></i>
+    </a>
+  </div>
+</script>
+  
+<script src="./layui.js"></script>
+<script>
+layui.use(function(){
+  var table = layui.table;
+  var form = layui.form;
+  var laydate = layui.laydate;
+  var dropdown = layui.dropdown;
+  var $ = layui.$;
+  // 创建表格实例
+  table.render({
+    elem: '#books_table',
+    url: '/books', 
+    method: 'post',
+    contentType: 'application/json',
+    where: {id: '', title: ''},
+    toolbar: '#toolbarDemo',
+    parseData: function(res){ // res 即为原始返回的数据
+        return {
+        "code": res.code == 200?0:res.code, // 解析接口状态
+        "msg": res.message, // 解析提示文本
+        "count": res.count, // 解析数据长度
+        "data": res.data.result // 解析数据列表
+        };
+    },
+    cols: [[
+      {type: 'radio', title: '😊', fixed: true}, // 单选框
+      {field:'id', title: 'ID', width:80, sort: true, fixed: true},
+      {field:'title', title: '书名', width:80},
+      {field:'author', title: '作者', width:80, sort: true},
+      {field:'publication_year', title: '发布年份', width:120},
+      {field:'isbn', title: 'ISBN'},
+      {fixed: 'right', title:'操作', width: 134, minWidth: 125, toolbar: '#barDemo'}
+    ]],
+    page: true,
+    height: 310
+  });
+
+  table.on('toolbar(books_table)', function(obj){
+    // var id = obj.config.id;
+    // var checkStatus = table.checkStatus(id);
+    // var othis = lay(this);
+    switch(obj.event){
+      case 'createNewBook':
+        // var data = checkStatus.data;
+        // layer.alert(layui.util.escape(JSON.stringify(data)));
+        layer.open({
+        title: '新建书籍',
+        type: 1,
+        area: ['80%','80%'],
+        content:       '<form method="post" class="layui-form" id="book"  lay-filter="example" style="margin: 25px;width: 500px"> ' +
+                        '<div class="layui-form-item"> ' +
+                        '<div class="layui-col-md12">' +
+                        '<label class="layui-form-label" >书名</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="title" name="title" lay-verify="title" autocomplete="off" placeholder="请输入书名"  class="layui-input"> ' +
+                        '</div> </div>' +
+                        '<div class="layui-col-md12">' +
+                        '<div class="layui-form-item"> ' +
+                        '<label class="layui-form-label">作者</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="author" name="author" lay-verify="title" autocomplete="off" placeholder="请输入作者" class="layui-input"> ' +
+                        '</div> </div> </div> </div> ' +
+                        '<div class="layui-form-item"> ' +
+                        '<div class="layui-col-md12"> ' +
+                        '<label style="float:left;display:block;padding-top: 9px;padding-bottom:9px; padding-right:-25px;width:100px;font-weight:400;line-height:20px;text-align:right">发布时间</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="publication_year" name="publication_year" lay-verify="title" autocomplete="off" placeholder="请输入发布时间" class="layui-input"> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '<div class="layui-form-item"> <div class="layui-col-md12"> ' +
+                        '<label class="layui-form-label" >isbn</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="ISBN" name="ISBN" lay-verify="title" autocomplete="off" placeholder="请输入ISBN"  class="layui-input"> ' +
+                        '</div> </div> ' +
+                        '<div class="layui-form-item" style="float: left;margin-left: 250px"> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<button class="layui-btn layui-btn-normal" lay-submit lay-filter="ok">确定</button> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '</form>' +
+                        "<script>" +
+                        "form.on('submit(ok)', function(data){" +
+                          "var field = data.field; // 获得表单字段 "+
+                          "$.ajax({"+
+                                    "url:'/book/create',"+
+                                    "data:field,"+
+                                    "type:'post',"+
+                                    "dataType:'json',"+
+                                    "headers : {'Content-Type' : 'application/json;charset=utf-8'}, //接口json格式"+
+                                    "success:function(data){"+
+                                        "console.log(data);"+
+                                    "},"+
+                                    "error:function(data){"+
+                                      "console.log(data);"+
+                                    "}"+
+                                "});"+
+                                "layer.close(index);"+
+                          "// 执行搜索重载"+
+                          "table.reload('books_table', {"+
+                            "page: {"+
+                              "curr: 1 // 重新从第 1 页开始"+
+                            "},"+
+                            "method: 'post',"+
+                            "contentType: 'application/json'"+
+                          "});"+
+                          "layer.msg('查询成功');"+
+                          
+                          "return false; // 阻止默认 form 跳转"+
+                        "});" 
+                        
+      });
+      break;
+    };
+  });
+
+  table.on('tool(books_table)', function(obj){ // 双击 toolDouble
+    var data = obj.data; // 获得当前行数据
+    // console.log(obj)
+    if(obj.event === 'edit'){
+      layer.open({
+        title: '编辑 - id:'+ data.id,
+        type: 1,
+        area: ['80%','80%'],
+        content:       '<form  action="/book/create" method="post" class="layui-form" id="book"  lay-filter="example" style="margin: 25px;width: 500px"> ' +
+                        '<div class="layui-form-item"> ' +
+                        '<div class="layui-col-md12">' +
+                        '<label class="layui-form-label" >书名</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="title" name="title" lay-verify="title" autocomplete="off" placeholder="请输入书名"  class="layui-input"> ' +
+                        '</div> </div>' +
+                        '<div class="layui-col-md12">' +
+                        '<div class="layui-form-item"> ' +
+                        '<label class="layui-form-label">作者</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="author" name="author" lay-verify="title" autocomplete="off" placeholder="请输入作者" class="layui-input"> ' +
+                        '</div> </div> </div> </div> ' +
+                        '<div class="layui-form-item"> ' +
+                        '<div class="layui-col-md12"> ' +
+                        '<label style="float:left;display:block;padding-top: 9px;padding-bottom:9px; padding-right:-25px;width:100px;font-weight:400;line-height:20px;text-align:right">发布时间</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="publication_year" name="publication_year" lay-verify="title" autocomplete="off" placeholder="请输入发布时间" class="layui-input"> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '<div class="layui-form-item"> <div class="layui-col-md12"> ' +
+                        '<label class="layui-form-label" >isbn</label> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<input type="text" id="ISBN" name="ISBN" lay-verify="title" autocomplete="off" placeholder="请输入ISBN"  class="layui-input"> ' +
+                        '</div> </div> ' +
+                        '<div class="layui-form-item" style="float: left;margin-left: 250px"> ' +
+                        '<div class="layui-input-block"> ' +
+                        '<button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="demo1">确认</button> ' +
+                        '</div> ' +
+                        '</div> ' +
+                        '</form>'
+      });
+    } else if(obj.event === 'more'){
+      // 更多 - 下拉菜单
+      dropdown.render({
+        elem: this, // 触发事件的 DOM 对象
+        show: true, // 外部事件触发即显示
+        data: [{
+          title: '删除',
+          id: 'del'
+        }],
+        click: function(menudata){
+          if(menudata.id === 'del'){
+            layer.confirm('真的删除行 [id: '+ data.id +'] 么', function(index){
+              obj.del(); // 删除对应行（tr）的DOM结构
+              layer.close(index);
+              // 向服务端发送删除指令
+              $.ajax({
+                  url:"/book/"+data.id,
+                  //data:{'xxx':xxx,'xx':xxx},
+                  type:"delete",
+                  //dataType:"json",
+                  //headers : {'Content-Type' : 'application/json;charset=utf-8'}, //接口json格式
+                  success:function(data){
+                      console.log(data);
+                  },
+                  error:function(data){
+                    console.log(data);
+                  }
+              });
+            });
+          } 
+        },
+        align: 'right', // 右对齐弹出
+        style: 'box-shadow: 1px 1px 10px rgb(0 0 0 / 12%);' // 设置额外样式
+      })
+    }
+  });
+  // 日期
+  laydate.render({
+    elem: '.demo-table-search-date'
+  });
+  // 搜索提交
+  form.on('submit(demo-table-search)', function(data){
+    var field = data.field; // 获得表单字段
+    // 执行搜索重载
+    table.reload('books_table', {
+      page: {
+        curr: 1 // 重新从第 1 页开始
+      },
+      method: 'post',
+      contentType: 'application/json',
+      where: field // 搜索的字段
+    });
+    layer.msg('查询成功');
+    return false; // 阻止默认 form 跳转
+  });
+});
+</script>
+ 
+</body>
+</html>

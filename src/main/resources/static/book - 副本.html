@@ -1,0 +1,43 @@
+form.on('submit(demo-table-search)', function(data){
+  var field = data.field; // 获得表单字段
+  // 执行搜索重载
+  table.reload('books_table', {
+    page: {
+      curr: 1 // 重新从第 1 页开始
+    },
+    method: 'post',
+    contentType: 'application/json',
+    where: field // 搜索的字段
+  });
+  layer.msg('查询成功');
+  return false; // 阻止默认 form 跳转
+});
+<script>
+form.on('submit(ok)', function(data){
+  var field = data.field; // 获得表单字段
+  $.ajax({
+            url:'/book/create',
+            data:field,
+            type:"post",
+            dataType:'json',
+            headers : {'Content-Type' : 'application/json;charset=utf-8'}, //接口json格式
+            success:function(data){
+                console.log(data);
+            },
+            error:function(data){
+              console.log(data);
+            }
+        });
+  // 执行搜索重载
+  table.reload('books_table', {
+    page: {
+      curr: 1 // 重新从第 1 页开始
+    },
+    method: 'post',
+    contentType: 'application/json'
+  });
+  layer.msg('查询成功');
+  layer.close(index);
+  return false; // 阻止默认 form 跳转
+});
+</script>
